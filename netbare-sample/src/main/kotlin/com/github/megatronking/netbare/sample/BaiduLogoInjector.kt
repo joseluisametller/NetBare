@@ -45,10 +45,10 @@ class BaiduLogoInjector : SimpleHttpInjector() {
 
     override fun onResponseInject(response: HttpResponse, body: HttpBody, callback: InjectorCallback) {
         // 替换图片请求响应体
-        val injectIOStream = App.getInstance().resources.openRawResource(R.raw.baidu_inject_logo)
+/*        val injectIOStream = App.getInstance().resources.openRawResource(R.raw.baidu_inject_logo)
         val injectStream = BufferStream(ByteBuffer.wrap(injectIOStream.readBytes()))
         injectIOStream.close()
-        callback.onFinished(injectStream)
+        callback.onFinished(injectStream)*/
         Log.i(TAG, "Inject body completed!")
     }
 

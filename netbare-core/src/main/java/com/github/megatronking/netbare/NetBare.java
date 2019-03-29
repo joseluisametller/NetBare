@@ -17,6 +17,7 @@ package com.github.megatronking.netbare;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.net.VpnService;
 import android.os.Handler;
@@ -57,7 +58,7 @@ public final class NetBare {
     private final Set<NetBareListener> mListeners;
     private final Handler mMainThreadHandler;
 
-    private Application mApp;
+    private Context mApp;
     private NetBareConfig mNetBareConfig;
 
     private boolean mAlive;
@@ -79,7 +80,7 @@ public final class NetBare {
      * @param debug Should print logs in console.
      * @return The single instance of NetBare.
      */
-    public NetBare attachApplication(@NonNull Application application, boolean debug) {
+    public NetBare attachApplication(@NonNull Context application, boolean debug) {
         mApp = application;
         NetBareLog.setDebug(debug);
         return this;

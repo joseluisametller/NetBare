@@ -18,6 +18,7 @@ import com.github.megatronking.netbare.NetBareConfig
 import com.github.megatronking.netbare.NetBareListener
 import com.github.megatronking.netbare.http.HttpInjectInterceptor
 import com.github.megatronking.netbare.http.HttpInterceptorFactory
+import com.github.megatronking.netbare.ssl.JKS
 import java.io.IOException
 
 class MainActivity : AppCompatActivity(), NetBareListener {
@@ -27,6 +28,8 @@ class MainActivity : AppCompatActivity(), NetBareListener {
         private const val REQUEST_CODE_PICK_ROOT_CERTIFICATE = 1111
         private const val REQUEST_CODE_PICK_PRIVATE_KEY = 2222
         private const val REQUEST_READ_EXTERNAL_STORAGE_PERMISSION_CODE = 101
+        const val TAG = "NetBareSample"
+        const val JSK_ALIAS = "NetBareSample"
     }
 
     private lateinit var mNetBare : NetBare
@@ -39,11 +42,21 @@ class MainActivity : AppCompatActivity(), NetBareListener {
     private var mRootFilePath : String = ""
     private var mPrivateKeyFilePath : String = ""
 
+    private lateinit var mJKS : JKS
+    private var rootCertificatePath: String? = null
+    private var privateKeyPath: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         mNetBare = NetBare.get()
+
+        // Create default JKS
+        createJKS()
+
+        // 初始化NetBare
+        mNetBare.attachApplication(this, BuildConfig.DEBUG)
 
         mActionButton = findViewById(R.id.action)
         mActionButton.setOnClickListener {
@@ -76,11 +89,11 @@ class MainActivity : AppCompatActivity(), NetBareListener {
         mUseRandomCertificatesRadio = findViewById(R.id.radioButton)
         mUseRandomCertificatesRadio.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                App.getInstance().setPrivateKeyPath(null)
+                privateKeyPath = null
                 mPrivateKeyFilePath = ""
-                App.getInstance().setRootCertificatePath(null)
+                rootCertificatePath = null
                 mRootFilePath = ""
-                App.getInstance().createJKS()
+                createJKS()
                 mActionButton.isEnabled = true
             }
         }
@@ -124,11 +137,10 @@ class MainActivity : AppCompatActivity(), NetBareListener {
     }
 
     private fun prepareNetBare() {
-        val myJKS = App.getInstance().getJKS()
         // 安装自签证书
-        if (!myJKS.isInstalled(this, App.JSK_ALIAS)) {
+        if (!mJKS.isInstalled(this, JSK_ALIAS)) {
             try {
-                myJKS.install(this, App.JSK_ALIAS, App.JSK_ALIAS)
+                mJKS.install(this, JSK_ALIAS, JSK_ALIAS)
             } catch (e: IOException) {
                 // 安装失败
                 Log.d("TEST", e.toString());
@@ -142,7 +154,7 @@ class MainActivity : AppCompatActivity(), NetBareListener {
             return
         }
         // 启动NetBare服务
-        mNetBare.start(NetBareConfig.defaultHttpConfig(myJKS,
+        mNetBare.start(NetBareConfig.defaultHttpConfig(mJKS,
                 interceptorFactories()))
     }
 
@@ -155,10 +167,10 @@ class MainActivity : AppCompatActivity(), NetBareListener {
                     if (data != null) {
                         val rootFileUri : Uri = data.data ?: Uri.parse("")
                         mRootFilePath = rootFileUri.path ?: ""
-                        App.getInstance().setRootCertificatePath(FileUtils.getPath(this, rootFileUri) ?: "")
+                        rootCertificatePath = FileUtils.getPath(this, rootFileUri) ?: ""
                         // Create keystore if both root certificate and private key have been provided
                         if (!mRootFilePath.isEmpty() && !mPrivateKeyFilePath.isEmpty()) {
-                            App.getInstance().createJKS()
+                            createJKS()
                             mActionButton.isEnabled = true
                         }
                     }
@@ -167,10 +179,10 @@ class MainActivity : AppCompatActivity(), NetBareListener {
                     if (data != null) {
                         val privateKeyFileUri : Uri = data.data ?: Uri.parse("")
                         mPrivateKeyFilePath = privateKeyFileUri.path ?: ""
-                        App.getInstance().setPrivateKeyPath(FileUtils.getPath(this, privateKeyFileUri) ?: "")
+                        privateKeyPath = FileUtils.getPath(this, privateKeyFileUri) ?: ""
                         // Create keystore if both root certificate and private key have been provided
                         if (!mRootFilePath.isEmpty() && !mPrivateKeyFilePath.isEmpty()) {
-                            App.getInstance().createJKS()
+                            createJKS()
                             mActionButton.isEnabled = true
                         }
                     }
@@ -218,6 +230,18 @@ class MainActivity : AppCompatActivity(), NetBareListener {
                     mActionButton.isEnabled = false
                 }
             }
+        }
+    }
+
+    fun createJKS() {
+        mJKS = if (rootCertificatePath == null || privateKeyPath == null) {
+            Log.d(TAG, "In createJKS, using default certificate" )
+            JKS(this, JSK_ALIAS, JSK_ALIAS.toCharArray(), JSK_ALIAS, JSK_ALIAS,
+                    JSK_ALIAS, JSK_ALIAS, JSK_ALIAS)
+        } else {
+            Log.d(TAG, "In createJKS, using OUR certificate :" + rootCertificatePath + ", priv: " + privateKeyPath)
+            JKS(this, JSK_ALIAS, JSK_ALIAS.toCharArray(), JSK_ALIAS, JSK_ALIAS,
+                    JSK_ALIAS, JSK_ALIAS, JSK_ALIAS, rootCertificatePath, privateKeyPath)
         }
     }
 }
