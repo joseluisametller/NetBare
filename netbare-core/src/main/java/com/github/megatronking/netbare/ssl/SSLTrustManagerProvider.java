@@ -13,22 +13,29 @@
  *  You should have received a copy of the GNU General Public License along with NetBare.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.github.megatronking.netbare.http;
+package com.github.megatronking.netbare.ssl;
 
-import com.github.megatronking.netbare.gateway.Interceptor;
+import android.support.annotation.Nullable;
+
+import javax.net.ssl.TrustManager;
 
 /**
- * A specific interceptor designed for {@link HttpVirtualGateway}, it focuses on the http protocol
- * packets. The interceptor is an implement of {@link Interceptor}, methods are thread-safety and
- * runs in local proxy server threads.
- *
- * <p>
- * Use {@link HttpInterceptorFactory} to create an http interceptor instance.
- * </p>
+ * A security provider provides peer authentication trust decisions. The {@link TrustManager[]}
+ *  * instance would be used to initialize {@link javax.net.ssl.SSLContext}.
  *
  * @author Megatron King
- * @since 2018-11-15 19:40
+ * @since 2019/3/31 10:56
  */
-public interface HttpInterceptor extends Interceptor<HttpRequest, HttpRequestChain,
-        HttpResponse, HttpResponseChain> {
+public interface SSLTrustManagerProvider {
+
+    /**
+     * Provides peer authentication trust decisions or null.
+     *
+     * @param host The peer host.
+     * @param client Whether the SSLContext is initialized for client.
+     * @return The sources of peer authentication trust decisions or null.
+     */
+    @Nullable
+    TrustManager[] provide(String host, boolean client);
+
 }

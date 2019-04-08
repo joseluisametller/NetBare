@@ -32,37 +32,37 @@ import java.util.List;
  */
 /* package */ class DefaultVirtualGateway extends VirtualGateway {
 
-    private final List<Interceptor> mInterceptors;
+    private final List<Interceptor<Request, RequestChain, Response, ResponseChain>> mInterceptors;
 
     /* package */ DefaultVirtualGateway(Session session, Request request, Response response,
-                                        List<InterceptorFactory> factories) {
+                                        List<InterceptorFactory<Request, RequestChain, Response, ResponseChain>> factories) {
         super(session, request, response);
         this.mInterceptors = new ArrayList<>(factories.size());
-        for (InterceptorFactory factory : factories) {
+        for (InterceptorFactory<Request, RequestChain, Response, ResponseChain> factory : factories) {
             mInterceptors.add(factory.create());
         }
     }
 
     @Override
-    public void sendRequest(ByteBuffer buffer) throws IOException {
+    public void onRequest(ByteBuffer buffer) throws IOException {
         new RequestChain(mRequest, mInterceptors).process(buffer);
     }
 
     @Override
-    public void sendResponse(ByteBuffer buffer) throws IOException {
+    public void onResponse(ByteBuffer buffer) throws IOException {
         new ResponseChain(mResponse, mInterceptors).process(buffer);
     }
 
     @Override
-    public void sendRequestFinished() {
-        for (Interceptor interceptor: mInterceptors) {
+    public void onRequestFinished() {
+        for (Interceptor<Request, RequestChain, Response, ResponseChain> interceptor: mInterceptors) {
             interceptor.onRequestFinished(mRequest);
         }
     }
 
     @Override
-    public void sendResponseFinished() {
-        for (Interceptor interceptor: mInterceptors) {
+    public void onResponseFinished() {
+        for (Interceptor<Request, RequestChain, Response, ResponseChain> interceptor: mInterceptors) {
             interceptor.onResponseFinished(mResponse);
         }
     }
