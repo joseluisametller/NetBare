@@ -15,6 +15,7 @@
  */
 package com.github.megatronking.netbare;
 
+import android.os.Build;
 import android.text.TextUtils;
 
 import java.io.BufferedInputStream;
@@ -173,4 +174,14 @@ public final class NetBareUtils {
             throw new IOException(e.toString());
         }
     }
+
+    /**
+     * Whether the OS build version is Android Q.
+     *
+     * @return True means the build android Q.
+     */
+    public static boolean isAndroidQ() {
+        return "Q".equals(Build.VERSION.RELEASE);
+    }
+
 }

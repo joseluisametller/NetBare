@@ -108,7 +108,9 @@ class MainActivity : AppCompatActivity(), NetBareListener {
     }
 
     override fun onServiceStarted() {
-        mActionButton.setText(R.string.stop_netbare)
+        runOnUiThread {
+            mActionButton.setText(R.string.stop_netbare)
+        }
         mUseRandomCertificatesRadio.isEnabled = false
         mProvideCertificatesRadio.isEnabled = false
         mRootCertButton.isEnabled = false
@@ -116,7 +118,9 @@ class MainActivity : AppCompatActivity(), NetBareListener {
     }
 
     override fun onServiceStopped() {
-        mActionButton.setText(R.string.start_netbare)
+        runOnUiThread {
+            mActionButton.setText(R.string.start_netbare)
+        }
         mUseRandomCertificatesRadio.isEnabled = true
         mProvideCertificatesRadio.isEnabled = true
         mRootCertButton.isEnabled = true
