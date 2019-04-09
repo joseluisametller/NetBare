@@ -173,7 +173,16 @@ public abstract class SSLCodec {
             return;
         }
         if (mHandshakeFinished) {
+            boolean isRenegotiation = input.get(input.position()) ==
+                    SSLUtils.SSL_CONTENT_TYPE_HANDSHAKE;
             unwrap(engine, input, callback);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                // Fixed a SSL renegotiation issue for API 27+
+                // However below API 27, system SSLEngine doesn't support renegotiation.
+                if (isRenegotiation) {
+                    handshakeWrap(engine, callback);
+                }
+            }
         } else {
             handshake(engine, input, callback);
         }
@@ -396,7 +405,17 @@ public abstract class SSLCodec {
                 }
             }
         } else {
-            result = engine.unwrap(input, output);
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP) {
+                // Compat an Android 5.0 crash when calling
+                // 'com.android.org.conscrypt.OpenSSLBIOSink.available()'
+                try {
+                    result = engine.unwrap(input, output);
+                } catch (NullPointerException e) {
+                    throw new SSLException(e);
+                }
+            } else {
+                result = engine.unwrap(input, output);
+            }
         }
 
         // This is a workaround for a bug in Android 5.0. Android 5.0 does not correctly update

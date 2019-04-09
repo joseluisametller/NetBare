@@ -25,6 +25,8 @@ import com.github.megatronking.netbare.ip.IpAddress;
 import com.github.megatronking.netbare.net.Session;
 import com.github.megatronking.netbare.net.UidProvider;
 import com.github.megatronking.netbare.ssl.JKS;
+import com.github.megatronking.netbare.ssl.SSLKeyManagerProvider;
+import com.github.megatronking.netbare.ssl.SSLTrustManagerProvider;
 
 import java.net.InetAddress;
 import java.util.HashSet;
@@ -53,6 +55,8 @@ public final class NetBareConfig {
     UidProvider uidProvider;
     boolean dumpUid;
     boolean excludeSelf;
+    SSLKeyManagerProvider keyManagerProvider;
+    SSLTrustManagerProvider trustManagerProvider;
 
     private NetBareConfig() {
     }
@@ -262,6 +266,8 @@ public final class NetBareConfig {
          * Dump the uid of the session, you can get the value from {@link Session#uid}. This config
          * will cost much battery.
          *
+         * <p>Android Q removes access to /proc/net, this config doesn't work on Android Q.</p>
+         *
          * @param dumpUid Should dump session's uid from /proc/net/
          * @return this {@link Builder} object to facilitate chaining method calls.
          */
@@ -290,6 +296,36 @@ public final class NetBareConfig {
          */
         public Builder setUidProvider(UidProvider provider) {
             mConfig.uidProvider = provider;
+            return this;
+        }
+
+        /**
+         * Set a SSL KeyManager provider, NetBare will use it to initialize
+         * {@link javax.net.ssl.SSLContext}.
+         *
+         * If not set, the MITM server will use a self-signed root CA, the MITM client will set the
+         * parameter to null when initializing {@link javax.net.ssl.SSLContext}.
+         *
+         * @param provider This interface provides {@link javax.net.ssl.KeyManager[]}
+         * @return this {@link Builder} object to facilitate chaining method calls.
+         */
+        public Builder setSSLKeyManagerProvider(SSLKeyManagerProvider provider) {
+            mConfig.keyManagerProvider = provider;
+            return this;
+        }
+
+        /**
+         * Set a SSL KeyManager provider, NetBare will use it to initialize
+         * {@link javax.net.ssl.SSLContext}.
+         *
+         * If not set, the MITM server and client will set the parameter to null when initializing
+         * {@link javax.net.ssl.SSLContext}.
+         *
+         * @param provider This interface provides {@link javax.net.ssl.TrustManager[]}
+         * @return this {@link Builder} object to facilitate chaining method calls.
+         */
+        public Builder setSSLTrustManagerProvider(SSLTrustManagerProvider provider) {
+            mConfig.trustManagerProvider = provider;
             return this;
         }
 
