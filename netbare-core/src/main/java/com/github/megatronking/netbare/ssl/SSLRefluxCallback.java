@@ -13,25 +13,24 @@
  *  You should have received a copy of the GNU General Public License along with NetBare.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.github.megatronking.netbare.gateway;
+package com.github.megatronking.netbare.ssl;
 
-import android.support.annotation.NonNull;
+import com.github.megatronking.netbare.gateway.Request;
+import com.github.megatronking.netbare.gateway.Response;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
- * Factory used by developer to create their own interceptor for virtual gateway.
+ * A callback to receive SSL plaintext packets and input them to {@link javax.net.ssl.SSLEngine}.
  *
  * @author Megatron King
- * @since 2018-11-02 23:46
+ * @since 2018-11-15 14:35
  */
-public interface InterceptorFactory<Req extends Request, ReqChain extends AbstractRequestChain<Req, ? extends Interceptor>,
-        Res extends Response, ResChain extends AbstractResponseChain<Res, ? extends Interceptor>> {
+public interface SSLRefluxCallback<Req extends Request, Res extends Response> {
 
-    /**
-     * Creates an interceptor instance and immediately returns it, it must not be null.
-     *
-     * @return A newly created interceptor.
-     */
-    @NonNull
-    Interceptor<Req, ReqChain, Res, ResChain> create();
+    void onRequest(Req request, ByteBuffer buffer) throws IOException;
+
+    void onResponse(Res response, ByteBuffer buffer) throws IOException;
 
 }

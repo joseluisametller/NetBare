@@ -15,19 +15,15 @@
  */
 package com.github.megatronking.netbare.http;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import com.github.megatronking.netbare.gateway.PendingIndexedInterceptor;
 
 /**
- * A callback to receive SSL plaintext packets and input them to {@link javax.net.ssl.SSLEngine}.
+ * An abstract interceptor provides multi-apis for packet pending. The packet will be stored in a
+ * queue, and you can merge them with another packet.
  *
  * @author Megatron King
- * @since 2018-11-15 14:35
+ * @since 2018-12-09 12:07
  */
-public interface SSLRefluxCallback {
-
-    void onRequest(HttpRequest request, ByteBuffer buffer) throws IOException;
-
-    void onResponse(HttpResponse response, ByteBuffer buffer) throws IOException;
-
+public abstract class HttpPendingIndexedInterceptor extends PendingIndexedInterceptor<HttpRequest,
+        HttpRequestChain, HttpResponse, HttpResponseChain> implements HttpInterceptor {
 }
