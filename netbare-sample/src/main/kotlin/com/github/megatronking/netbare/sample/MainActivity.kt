@@ -110,21 +110,21 @@ class MainActivity : AppCompatActivity(), NetBareListener {
     override fun onServiceStarted() {
         runOnUiThread {
             mActionButton.setText(R.string.stop_netbare)
+            mRootCertButton.isEnabled = false
+            mPrivateKeyButton.isEnabled = false
         }
         mUseRandomCertificatesRadio.isEnabled = false
         mProvideCertificatesRadio.isEnabled = false
-        mRootCertButton.isEnabled = false
-        mPrivateKeyButton.isEnabled = false
     }
 
     override fun onServiceStopped() {
         runOnUiThread {
             mActionButton.setText(R.string.start_netbare)
+            mRootCertButton.isEnabled = true
+            mPrivateKeyButton.isEnabled = true
         }
         mUseRandomCertificatesRadio.isEnabled = true
         mProvideCertificatesRadio.isEnabled = true
-        mRootCertButton.isEnabled = true
-        mPrivateKeyButton.isEnabled = true
     }
 
     private fun prepareNetBare() {
