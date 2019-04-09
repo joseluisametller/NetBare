@@ -17,19 +17,17 @@ package com.github.megatronking.netbare.http;
 
 import android.support.annotation.NonNull;
 
-import com.github.megatronking.netbare.NetBareLog;
 import com.github.megatronking.netbare.NetBareXLog;
 import com.github.megatronking.netbare.gateway.Request;
 import com.github.megatronking.netbare.gateway.Response;
 import com.github.megatronking.netbare.ip.Protocol;
-import com.github.megatronking.netbare.ssl.JKS;
 import com.github.megatronking.netbare.ssl.SSLCodec;
 import com.github.megatronking.netbare.ssl.SSLEngineFactory;
+import com.github.megatronking.netbare.ssl.SSLRefluxCallback;
 import com.github.megatronking.netbare.ssl.SSLUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.GeneralSecurityException;
 
 /**
  * An interceptor decodes SSL encrypt packets to plaintext packets.
@@ -37,37 +35,26 @@ import java.security.GeneralSecurityException;
  * @author Megatron King
  * @since 2018-11-15 15:39
  */
-/* package */ class SSLCodecInterceptor extends HttpPendingInterceptor implements SSLRefluxCallback {
+/* package */ class HttpSSLCodecInterceptor extends HttpPendingIndexedInterceptor implements
+        SSLRefluxCallback<HttpRequest, HttpResponse> {
 
-    private static SSLEngineFactory sEngineFactory;
-
+    private SSLEngineFactory mEngineFactory;
     private Request mRequest;
     private Response mResponse;
 
-    private JKS mJKS;
-
-    private SSLHttpRequestCodec mRequestCodec;
-    private SSLHttpResponseCodec mResponseCodec;
+    private HttpSSLRequestCodec mRequestCodec;
+    private HttpSSLResponseCodec mResponseCodec;
 
     private NetBareXLog mLog;
 
     private boolean mClientAlpnResolved;
 
-    /* package */ SSLCodecInterceptor(JKS jks, Request request, Response response) {
-        this.mJKS = jks;
+    /* package */ HttpSSLCodecInterceptor(SSLEngineFactory engineFactory, Request request, Response response) {
+        this.mEngineFactory = engineFactory;
         this.mRequest = request;
         this.mResponse = response;
-
-        if (sEngineFactory == null) {
-            try {
-                sEngineFactory = new SSLEngineFactory(jks);
-            } catch (GeneralSecurityException | IOException e) {
-                NetBareLog.e("Create SSLEngineFactory failed: " + e.getMessage());
-            }
-        }
-
-        mRequestCodec = new SSLHttpRequestCodec(sEngineFactory);
-        mResponseCodec = new SSLHttpResponseCodec(sEngineFactory);
+        mRequestCodec = new HttpSSLRequestCodec(engineFactory);
+        mResponseCodec = new HttpSSLResponseCodec(engineFactory);
 
         mLog = new NetBareXLog(Protocol.TCP, request.ip(), request.port());
     }
@@ -77,7 +64,7 @@ import java.security.GeneralSecurityException;
                              int index) throws IOException {
         if (!chain.request().isHttps()) {
             chain.process(buffer);
-        } else if (!mJKS.isInstalled()) {
+        } else if (mEngineFactory == null) {
             // Skip all interceptors
             chain.processFinal(buffer);
             mLog.w("JSK not installed, skip all interceptors!");
@@ -107,7 +94,7 @@ import java.security.GeneralSecurityException;
                     mResponseCodec.prepareHandshake();
                 } else {
                     // Detect remote server's ALPN and then continue request.
-                    mResponseCodec.prepareHandshake(protocols, new SSLHttpResponseCodec.AlpnResolvedCallback() {
+                    mResponseCodec.prepareHandshake(protocols, new HttpSSLResponseCodec.AlpnResolvedCallback() {
                         @Override
                         public void onResult(String selectedAlpnProtocol) throws IOException {
                             if (selectedAlpnProtocol != null) {
@@ -143,7 +130,7 @@ import java.security.GeneralSecurityException;
                              int index) throws IOException {
         if (!chain.response().isHttps()) {
             chain.process(buffer);
-        } else if (!mJKS.isInstalled()) {
+        } else if (mEngineFactory == null) {
             // Skip all interceptors
             chain.processFinal(buffer);
             mLog.w("JSK not installed, skip all interceptors!");

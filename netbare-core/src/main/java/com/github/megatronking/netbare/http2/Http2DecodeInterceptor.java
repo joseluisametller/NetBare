@@ -19,7 +19,7 @@ import android.support.annotation.NonNull;
 
 import com.github.megatronking.netbare.NetBareXLog;
 import com.github.megatronking.netbare.http.HttpId;
-import com.github.megatronking.netbare.http.HttpPendingInterceptor;
+import com.github.megatronking.netbare.http.HttpPendingIndexedInterceptor;
 import com.github.megatronking.netbare.http.HttpProtocol;
 import com.github.megatronking.netbare.http.HttpRequest;
 import com.github.megatronking.netbare.http.HttpRequestChain;
@@ -27,7 +27,7 @@ import com.github.megatronking.netbare.http.HttpResponse;
 import com.github.megatronking.netbare.http.HttpResponseChain;
 import com.github.megatronking.netbare.http.HttpZygoteRequest;
 import com.github.megatronking.netbare.http.HttpZygoteResponse;
-import com.github.megatronking.netbare.http.SSLRefluxCallback;
+import com.github.megatronking.netbare.ssl.SSLRefluxCallback;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -41,9 +41,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Megatron King
  * @since 2019/1/5 14:19
  */
-public final class Http2DecodeInterceptor extends HttpPendingInterceptor {
+public final class Http2DecodeInterceptor extends HttpPendingIndexedInterceptor {
 
-    private final SSLRefluxCallback mRefluxCallback;
+    private final SSLRefluxCallback<HttpRequest, HttpResponse> mRefluxCallback;
 
     private final HttpZygoteRequest mZygoteRequest;
     private final HttpZygoteResponse mZygoteResponse;
@@ -58,7 +58,8 @@ public final class Http2DecodeInterceptor extends HttpPendingInterceptor {
 
     private NetBareXLog mLog;
 
-    public Http2DecodeInterceptor(SSLRefluxCallback refluxCallback, HttpZygoteRequest zygoteRequest,
+    public Http2DecodeInterceptor(SSLRefluxCallback<HttpRequest, HttpResponse> refluxCallback,
+                                  HttpZygoteRequest zygoteRequest,
                                   HttpZygoteResponse zygoteResponse) {
         this.mRefluxCallback = refluxCallback;
 

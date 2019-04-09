@@ -13,25 +13,16 @@
  *  You should have received a copy of the GNU General Public License along with NetBare.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.github.megatronking.netbare.gateway;
+package com.github.megatronking.netbare.http;
 
-import android.support.annotation.NonNull;
+import com.github.megatronking.netbare.gateway.IndexedInterceptor;
 
 /**
- * Factory used by developer to create their own interceptor for virtual gateway.
+ * Indicates the packet index in the http session.
  *
  * @author Megatron King
- * @since 2018-11-02 23:46
+ * @since 2018-12-03 21:00
  */
-public interface InterceptorFactory<Req extends Request, ReqChain extends AbstractRequestChain<Req, ? extends Interceptor>,
-        Res extends Response, ResChain extends AbstractResponseChain<Res, ? extends Interceptor>> {
-
-    /**
-     * Creates an interceptor instance and immediately returns it, it must not be null.
-     *
-     * @return A newly created interceptor.
-     */
-    @NonNull
-    Interceptor<Req, ReqChain, Res, ResChain> create();
-
+public abstract class HttpIndexedInterceptor extends IndexedInterceptor<HttpRequest, HttpRequestChain,
+        HttpResponse, HttpResponseChain> implements HttpInterceptor {
 }
