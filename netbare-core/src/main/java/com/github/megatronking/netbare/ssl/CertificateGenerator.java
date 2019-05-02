@@ -16,6 +16,7 @@
 package com.github.megatronking.netbare.ssl;
 
 import android.os.Environment;
+import android.os.Build;
 
 import com.github.megatronking.netbare.NetBareUtils;
 
@@ -97,9 +98,9 @@ public final class CertificateGenerator {
             "WithRSAEncryption";
 
     /**
-     * The milliseconds of 30 day.
+     * The milliseconds of 1 day.
      */
-    private static final long ONE_DAY = 30 * 86400000L;
+    private static final long ONE_DAY = 86400000L;
 
     /**
      * Current time minus 1 year, just in case software clock goes back due to time synchronization.
@@ -256,12 +257,19 @@ public final class CertificateGenerator {
     private static X509Certificate signCertificate(X509v3CertificateBuilder certificateBuilder,
             PrivateKey signedWithPrivateKey) throws OperatorCreationException,
             CertificateException {
-        ContentSigner signer = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM)
-                .setProvider(PROVIDER_NAME)
-                .build(signedWithPrivateKey);
-        return new JcaX509CertificateConverter()
-                .setProvider(PROVIDER_NAME)
-                .getCertificate(certificateBuilder.build(signer));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            ContentSigner signer = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM)
+                    .build(signedWithPrivateKey);
+            return new JcaX509CertificateConverter()
+                    .getCertificate(certificateBuilder.build(signer));
+        } else {
+            ContentSigner signer = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM)
+                    .setProvider(PROVIDER_NAME)
+                    .build(signedWithPrivateKey);
+            return new JcaX509CertificateConverter()
+                    .setProvider(PROVIDER_NAME)
+                    .getCertificate(certificateBuilder.build(signer));
+        }
     }
 
     /**
