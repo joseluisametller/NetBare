@@ -109,9 +109,9 @@ public final class NetBare {
             throw new RuntimeException("Must set address in NetBareConfig");
         }
         mNetBareConfig = config;
-        Intent intent = new Intent(NetBareService.ACTION_START);
-        intent.setPackage(mApp.getPackageName());
-        ContextCompat.startForegroundService(mApp, intent);
+//        Intent intent = new Intent(NetBareService.ACTION_START);
+//        intent.setPackage(mApp.getPackageName());
+//        ContextCompat.startForegroundService(mApp, intent);
     }
 
     /**

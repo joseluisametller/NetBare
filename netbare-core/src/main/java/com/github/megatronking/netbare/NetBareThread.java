@@ -99,6 +99,10 @@ import java.util.Map;
 
     }
 
+    public boolean isRunning() {
+        return mRunning;
+    }
+
     private void establishVpn(PacketsTransfer packetsTransfer) {
         VpnService.Builder builder = mVpnService.new Builder();
         builder.setMtu(mConfig.mtu);

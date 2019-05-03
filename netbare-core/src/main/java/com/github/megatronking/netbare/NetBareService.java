@@ -19,6 +19,9 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.net.VpnService;
+import android.os.Binder;
+import android.os.IBinder;
+import android.os.Parcel;
 import android.support.annotation.NonNull;
 
 import com.github.megatronking.netbare.ssl.SSLEngineFactory;
@@ -38,7 +41,7 @@ import com.github.megatronking.netbare.ssl.SSLEngineFactory;
  * @author Megatron King
  * @since 2018-10-08 21:09
  */
-public abstract class NetBareService extends VpnService {
+public /*abstract*/ class NetBareService extends VpnService {
 
     /**
      * Start capturing target app's net packets.
@@ -58,17 +61,48 @@ public abstract class NetBareService extends VpnService {
      *
      * @return The identifier
      */
-    protected abstract int notificationId();
+//    protected abstract int notificationId();
 
     /**
      * A {@link Notification} object describing what to show the user. Must not be null.
      *
      * @return The Notification to be displayed.
      */
-    @NonNull
-    protected abstract Notification createNotification();
+//    @NonNull
+//    protected abstract Notification createNotification();
 
     private NetBareThread mNetBareThread;
+    private final IBinder binder = new LocalBinder2();
+
+    /**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    public class LocalBinder2 extends Binder {
+        public NetBareService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return NetBareService.this;
+        }
+
+        @Override
+        protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) {
+            if (code == IBinder.LAST_CALL_TRANSACTION) {
+                onRevoke();
+                return true;
+            }
+            return false;
+        }
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return binder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        return false;
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -78,10 +112,10 @@ public abstract class NetBareService extends VpnService {
         String action = intent.getAction();
         if (ACTION_START.equals(action)) {
             startNetBare();
-            startForeground(notificationId(), createNotification());
+//            startForeground(notificationId(), createNotification());
         } else if (ACTION_STOP.equals(action)) {
             stopNetBare();
-            stopForeground(true);
+//            stopForeground(true);
             stopSelf();
         } else {
             stopSelf();
@@ -93,10 +127,10 @@ public abstract class NetBareService extends VpnService {
     public void onDestroy() {
         super.onDestroy();
         stopNetBare();
-        stopForeground(true);
+//        stopForeground(true);
     }
 
-    private void startNetBare() {
+    public void startNetBare() {
         // Terminate previous service.
         stopNetBare();
 
@@ -112,13 +146,24 @@ public abstract class NetBareService extends VpnService {
         mNetBareThread.start();
     }
 
-    private void stopNetBare() {
+    public void stopNetBare() {
         if (mNetBareThread == null) {
             return;
         }
         NetBareLog.i("Stop NetBare service!");
         mNetBareThread.interrupt();
         mNetBareThread = null;
+    }
+
+    public boolean isNetBareActive() {
+        boolean isActive = false;
+
+        if (mNetBareThread != null) {
+            isActive = mNetBareThread.isRunning();
+        }
+
+        NetBareLog.i("MITM isNetBareActive: " + isActive);
+        return isActive;
     }
 
 }
